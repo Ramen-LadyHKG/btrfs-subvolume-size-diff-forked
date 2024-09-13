@@ -4,12 +4,13 @@ This project is a fork of [`dim-geo`](https://github.com/dim-geo/)'s tool [`btrf
 
 The primary enhancement introduced in this fork, is the ability to display subvolume paths alongside their IDs. This makes it significantly easier to identify and manage Btrfs subvolumes, especially when dealing with complex snapshot structures.
 
+<details>
+  <summary>Video</summary>
+            
+https://github.com/user-attachments/assets/3c45d540-4ad1-4976-924c-41aefade0534
+</details>
 
-
-https://github.com/user-attachments/assets/af85493b-c50e-4f04-b64e-f5956e817743
-
-
-
+![](Previews/btrfs-snapshot-diff-v2.webp)
 
 ## Overview
 
