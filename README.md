@@ -1,14 +1,41 @@
-# btrfs-snapshot-diff
-Find the differences between btrfs snapshots, no quota activation in btrfs needed!
+# btrfs-subvolume-size-diff-forked
 
-Btrfs, as a CoW filesystem, has a problem identifying the size of a snapshot and the differences between snapshots.
+This project is a fork of [`dim-geo`](https://github.com/dim-geo/)'s tool [`btrfs-snapshot-diff`](https://github.com/dim-geo/btrfs-snapshot-diff/) which find the differences between btrfs snapshots, no quota activation in btrfs needed!
+
+The primary enhancement introduced in this fork, is the ability to display subvolume paths alongside their IDs. This makes it significantly easier to identify and manage Btrfs subvolumes, especially when dealing with complex snapshot structures.
+
+## Overview
+
+1. [Why do you need this tool?](#1-why-do-you-need-this-tool)
+2. [Original implemented functionality](#2-original-implemented-functionality)
+3. [The improvements over the original project](#3-The-improvement-over-the-original-project)
+4. [How it works](#4-how-it-works)
+5. [Installation](#5-installation)
+6. [Usage](#6-usage)
+      6.1 [Example](#6-1-example)
+7. [Versions](#7-versions)
+8. [License](#8-license)
+9. [Contributing](#9-contributing)
+      9.1 [Possible expansions](#possible-expansions)
+
+## 1. Why do you need this tool?
+
+Btrfs, as a CoW filesystem, has a problem identifying the size of a snapshot(/subvolume) and the differences between snapshots(/subvolume).
+
 By using [python-btrfs](https://github.com/knorrie/python-btrfs), it is possible to parse the metadata of a btrfs filesystem and find the differences between subvolumes/snapshots.
 
-## Currently implemented functionality:
+## 2. Original implemented functionality:
 
-This tool can approximately identify how much space will be freed when a snapshot is deleted.
+This tool can approximately identify how much space will be freed when a snapshot(/subvolume) is deleted.
 
-## How it works:
+## 3. The improvements over [the original project](https://github.com/dim-geo/btrfs-snapshot-diff/)
+
+- **Subvolume Path Integration**: The main improvement of this fork is that the output now includes the subvolume path, making the information more readable and useful for users managing multiple snapshots.
+- **Line Separation**: Additional line spacing for better readability and maintenance.
+
+![Previews_compare-0_3](Previews/Previews_compare-0_3.jpg)
+
+## 4. How it works:
 
 This tool identifies all subvolumes of a btrfs filesystem. For each subvolume all file extents which are not inline are parsed and kept. All other items are ignored.
 
@@ -23,13 +50,59 @@ Thus, we create a tree of extents & ranges together with the snapshots that use 
    2. range2: [...]
 
 Now, the actual disk size of Snapshot 1 can be extracted from each file extent
-## Usage:
 
-[python-btrfs](https://github.com/knorrie/python-btrfs) must be installed.
+## 5. Installation
+
+### Advanced User (Hey! My python is set up)
+#### Prerequisites
+- BTRFS partition with subvolumes(/snapshots)
+- [python-btrfs](https://github.com/knorrie/python-btrfs) must be installed.
+
+### Download this project
+Download this repository to your favourite location. Mines at `$Home/scripts`
+
+1. Create a directory at $USER directory
+> `cd $HOME && mkdir scripts`
+
+2. Clone this repo to `$Home/scripts`
+> `git clone https://github.com/Ramen-LadyHKG/btrfs-subvolume-size-diff-forked.git`
+
+### Make sure python is configured
+
+3. Set up python
+Here, I cannot provide detail setup for python due diffences between distro.
+I recommend you to look for better resources.
+> https://docs.python-guide.org/starting/install3/linux/
+> https://docs.aws.amazon.com/zh_tw/elasticbeanstalk/latest/dg/eb-cli3-install-linux.html
+
+4. I recommend using virtual environment for python
+> For example\
+>> `mkdir $HOME/.python`\
+>> `python -m venv $HOME/.python`\
+>> `source $HOME/.python/bin/activate`\
+>> `python -m pip install --upgrade pip`
+
+5. Install `btrfs` python library
+>> `python -m pip install btrfs`
+
+**OPTIONAL.** Add a `cbsd` (check-btrfs-size-diff) alias of the python script to your Shell env file.
+>> `echo -e "\nalias cbsd='sudo $HOME/scripts/btrfs-subvolume-size-diff-forked/3_check-btrfs-sub-size-diff__with-line.py'" >>  $HOME/.zshrc`
+
+DONE
+
+## 6. Usage
 
 Program is single threaded, it could use a lot of memory and it puts a lot of read stress in disks. It could take many minutes. ionice it & monitor its memory usage. Memory usage & execution time depend on the dataset. The program does not perform any write operations. Do not modify subvolume/snapshot during execution. Try not to write any data to any subvolume or execute dedup programs in parallel.
 
-`subvolume.py [-u] [-f] [-r <root tree, default 5>] /path/to/btrfs/ [ -i | -o ] [<subvolume id1> <subvolume id2>]`
+1. Change your shell to the directory of this repo
+>> `cd $HOME/btrfs-subvolume-size-diff-forked`
+
+2. Run the script w/wo options
+>> `3_check-btrfs-sub-size-diff__with-line.py [-u] [-f] [-r <root tree, default 5>] /path/to/btrfs/ [ -i | -o ] [<subvolume id1> <subvolume id2>]`
+
+       **OPTIONAL**
+       if you've DONE the alias
+>> `cbsd /path/to/btrfs/mount/`
 
 `-u` calculates the unique data occupied by each snapshot. Thus, `-r` makes no sense. Specifying subvolumes to ignore can mess with `-u` results because the specified subvolume data will not be parsed!
 `-f` finds the files that might contribute to the unique extents.
@@ -39,118 +112,173 @@ Program is single threaded, it could use a lot of memory and it puts a lot of re
 You can find subvolume ids by using:
 `btrfs subvolume list /path/to/btrfs`
 
-## Example:
+## 6.1. Example:
 
-`btrfs subvolume list /path/to/btrfs`:
-
+`sudo btrfs subvolume list  --sort=-rootid /`:
 ```
-ID 258 gen 15649 top level 5 path mydata
-ID 259 gen 15651 top level 5 path subvol_snapshots
-ID 1949 gen 3785 top level 259 path subvol_snapshots/283/snapshot
-ID 2133 gen 5080 top level 259 path subvol_snapshots/435/snapshot
-ID 2395 gen 6616 top level 259 path subvol_snapshots/660/snapshot
-ID 2694 gen 8781 top level 259 path subvol_snapshots/888/snapshot
-ID 3661 gen 10830 top level 259 path subvol_snapshots/1126/snapshot
-ID 3818 gen 11948 top level 259 path subvol_snapshots/1228/snapshot
-ID 3887 gen 12351 top level 259 path subvol_snapshots/1285/snapshot
-ID 3942 gen 12628 top level 259 path subvol_snapshots/1333/snapshot
-ID 4040 gen 13778 top level 259 path subvol_snapshots/1412/snapshot
-ID 4072 gen 13778 top level 259 path subvol_snapshots/1438/snapshot
-ID 4091 gen 13778 top level 259 path subvol_snapshots/1452/snapshot
-ID 4130 gen 13853 top level 259 path subvol_snapshots/1477/snapshot
-ID 4166 gen 14537 top level 259 path subvol_snapshots/1509/snapshot
-ID 4182 gen 14537 top level 259 path subvol_snapshots/1523/snapshot
-ID 4196 gen 14537 top level 259 path subvol_snapshots/1535/snapshot
-ID 4211 gen 14753 top level 259 path subvol_snapshots/1545/snapshot
-ID 4258 gen 15274 top level 259 path subvol_snapshots/1582/snapshot
-ID 4337 gen 15274 top level 259 path subvol_snapshots/1652/snapshot
-ID 4372 gen 15274 top level 259 path subvol_snapshots/1680/snapshot
-ID 4392 gen 15341 top level 259 path subvol_snapshots/1691/snapshot
-ID 4414 gen 15434 top level 259 path subvol_snapshots/1712/snapshot
-ID 4444 gen 15538 top level 259 path subvol_snapshots/1740/snapshot
-ID 4451 gen 15566 top level 259 path subvol_snapshots/1747/snapshot
-ID 4452 gen 15570 top level 259 path subvol_snapshots/1748/snapshot
-ID 4454 gen 15581 top level 259 path subvol_snapshots/1749/snapshot
-ID 4455 gen 15584 top level 259 path subvol_snapshots/1750/snapshot
-ID 4456 gen 15589 top level 259 path subvol_snapshots/1751/snapshot
-ID 4457 gen 15592 top level 259 path subvol_snapshots/1752/snapshot
-ID 4458 gen 15596 top level 259 path subvol_snapshots/1753/snapshot
-ID 4459 gen 15598 top level 259 path subvol_snapshots/1754/snapshot
-ID 4460 gen 15611 top level 259 path subvol_snapshots/1755/snapshot
-ID 4461 gen 15612 top level 259 path subvol_snapshots/1756/snapshot
-ID 4462 gen 15620 top level 259 path subvol_snapshots/1757/snapshot
-ID 4463 gen 15639 top level 259 path subvol_snapshots/1758/snapshot
-ID 4464 gen 15643 top level 259 path subvol_snapshots/1759/snapshot
-ID 4465 gen 15646 top level 259 path subvol_snapshots/1760/snapshot
-ID 4466 gen 15649 top level 259 path subvol_snapshots/1761/snapshot
-```
-
-`subvolume.py -r 258 /path/to/btrfs/ 259`:
+ID 18085 gen 526073 top level 267 path @home/.snapshots/2/snapshot
+ID 18084 gen 526071 top level 263 path @snapshots/1827/snapshot
+ID 18083 gen 526069 top level 263 path @snapshots/1826/snapshot
+ID 18082 gen 526069 top level 267 path @home/.snapshots/1/snapshot
+ID 18065 gen 525568 top level 263 path @snapshots/1825/snapshot
+ID 17994 gen 523504 top level 263 path @snapshots/1803/snapshot
+ID 17992 gen 523427 top level 263 path @snapshots/1801/snapshot
+ID 14424 gen 513650 top level 14421 path flatpak-installs
+ID 14423 gen 525575 top level 14421 path var/tmp
+ID 14422 gen 514035 top level 14421 path usr/share/waydroid-extra
+ID 14421 gen 526112 top level 5 path @
+ID 2722 gen 523512 top level 5 path @opt
+ID 2711 gen 526112 top level 257 path @home/curie/.cache
+ID 2563 gen 513947 top level 5 path @var_lib_libvirt_images
+ID 267 gen 526073 top level 257 path @home/.snapshots
+ID 264 gen 513650 top level 5 path @swap
+ID 263 gen 526072 top level 5 path @snapshots
+ID 262 gen 513650 top level 5 path @var_tmp
+ID 261 gen 526112 top level 5 path @var_log
+ID 260 gen 526094 top level 5 path @var_cache
+ID 259 gen 513650 top level 5 path @srv
+ID 258 gen 525924 top level 5 path @rootf
+ID 257 gen 526112 top level 5 path @home
 
 ```
- Unique File Extents  Extents added ontop   Extents added ontop of
- per       subvolume  of previous subvolume current(act) subvolume
----------------------|---------------------|----------------------
-SubvolumId       Size                  Size                   Size
-       258      0.00B                 0.00B                1.46TiB
-      4466      0.00B                 0.00B                  0.00B
-      4465      0.00B                 0.00B                  0.00B
-      4464      0.00B                 0.00B                  0.00B
-      4463      0.00B               2.58MiB                  0.00B
-      4462      0.00B                 0.00B              648.00KiB
-      4461      0.00B                 0.00B              648.00KiB
-      4460      0.00B               1.18MiB              648.00KiB
-      4459      0.00B                 0.00B              996.00KiB
-      4458      0.00B                 0.00B              996.00KiB
-      4457      0.00B                 0.00B              996.00KiB
-      4456      0.00B                 0.00B              996.00KiB
-      4455      0.00B                 0.00B              996.00KiB
-      4454      0.00B                 0.00B              996.00KiB
-      4452      0.00B                 0.00B              996.00KiB
-      4451      0.00B                 0.00B              996.00KiB
-      4444      0.00B               1.23MiB              996.00KiB
-      4414  120.00KiB              12.38MiB                1.07MiB
-      4392  184.00KiB               6.20GiB                1.19MiB
-      4372  164.00KiB               3.64MiB                4.41MiB
-      4337  176.00KiB               6.47MiB                4.48MiB
-      4258      0.00B            1010.53MiB                4.91MiB
-      4211      0.00B               1.97GiB                4.91MiB
-      4196   36.00KiB              36.00KiB                5.64MiB
-      4182   36.00KiB               3.66MiB                5.64MiB
-      4166  140.00KiB             590.95MiB                5.80MiB
-      4130  192.00KiB               6.04GiB                5.83MiB
-      4091    1.75MiB              34.36MiB                7.49MiB
-      4072  296.00KiB               9.12MiB                8.09MiB
-      4040    8.96MiB              11.01GiB               16.72MiB
-      3942    2.31MiB               4.16GiB                8.67MiB
-      3887    1.59MiB               4.15GiB               27.33MiB
-      3818    1.22MiB              15.20GiB               27.41MiB
-      3661    2.43MiB              13.61GiB               27.43MiB
-      2694    3.19MiB              40.44GiB               27.42MiB
-      2395    6.55MiB              13.25GiB               62.80MiB
-      2133    5.99MiB              17.44GiB              119.27MiB
-      1949   42.48MiB               1.33TiB              166.50MiB
-Size/Cost of snapshots: 77.78MiB Volatility: 0.01%
+
+### Example Usage
+
+Choose `14421` as active root partition(/subvolume/snapshot) to compare
+
+options `-r` is explained in help
+> `  -r ROOT, --root ROOT  current active subvolume to analyze first, default is 5`
+```bash
+$ `sudo ./check-btrfs-sub-size-diff_3__with-line.py -r 14421/`
+
+Subvolumes to parse: [14421, 18085, 18084, 18083, 18082, 18065, 17994, 17992, 14424, 14423, 14422, 2722, 2711, 2563, 267, 264, 263, 262, 261, 260, 259, 258, 257, 5]
+Parsing subvolume: 14421
+Parsing subvolume: 18085
+Parsing subvolume: 18084
+Parsing subvolume: 18083
+Parsing subvolume: 18082
+Parsing subvolume: 18065
+Parsing subvolume: 17994
+Parsing subvolume: 17992
+Parsing subvolume: 14424
+Parsing subvolume: 14423
+Parsing subvolume: 14422
+Parsing subvolume: 2722
+Parsing subvolume: 2711
+Parsing subvolume: 2563
+Parsing subvolume: 267
+Parsing subvolume: 264
+Parsing subvolume: 263
+Parsing subvolume: 262
+Parsing subvolume: 261
+Parsing subvolume: 260
+Parsing subvolume: 259
+Parsing subvolume: 258
+Parsing subvolume: 257
+Parsing subvolume: 5
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                               |           |Unique File Extents|  Extents added ontop|Extents added ontop of|
+|                               |           |      per subvolume|of previous subvolume|current(act) subvolume|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                           Path| SubvolumId|               Size|                 Size|                  Size|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                              @|      14421|           68.00KiB|             24.34GiB|              24.37GiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|    @home/.snapshots/2/snapshot|      18085|          116.00KiB|             32.49GiB|              32.49GiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|       @snapshots/1827/snapshot|      18084|              0.00B|                0.00B|              68.00KiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|       @snapshots/1826/snapshot|      18083|              0.00B|             24.34GiB|              68.00KiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|    @home/.snapshots/1/snapshot|      18082|          216.00KiB|             32.49GiB|              32.49GiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|       @snapshots/1825/snapshot|      18065|            2.75MiB|            144.95MiB|               2.79MiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|       @snapshots/1803/snapshot|      17994|            3.04MiB|             45.61MiB|              58.10MiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|       @snapshots/1801/snapshot|      17992|           43.60MiB|             24.28GiB|              98.66MiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|               flatpak-installs|      14424|            8.00KiB|              8.00KiB|               8.00KiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                        var/tmp|      14423|              0.00B|                0.00B|                 0.00B|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|       usr/share/waydroid-extra|      14422|            2.29GiB|              2.29GiB|               2.29GiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                           @opt|       2722|           10.65GiB|             10.65GiB|              10.65GiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|             @home/curie/.cache|       2711|           11.14GiB|             11.14GiB|              11.14GiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|        @var_lib_libvirt_images|       2563|          691.54MiB|            691.54MiB|             691.54MiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|               @home/.snapshots|        267|              0.00B|                0.00B|                 0.00B|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                          @swap|        264|            8.00GiB|              8.00GiB|               8.00GiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                     @snapshots|        263|           48.00KiB|             48.00KiB|              48.00KiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                       @var_tmp|        262|              0.00B|                0.00B|                 0.00B|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                       @var_log|        261|            4.25GiB|              4.25GiB|               4.25GiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                     @var_cache|        260|           52.64MiB|             52.64MiB|              52.64MiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                           @srv|        259|              0.00B|                0.00B|                 0.00B|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                         @rootf|        258|          192.73MiB|            192.73MiB|             192.73MiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|                          @home|        257|           14.77MiB|             32.52GiB|              32.50GiB|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|    ///// Top-Level(ID:5) /////|          5|              0.00B|                0.00B|                 0.00B|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+|-------------------------------|-----------|-------------------|---------------------|----------------------|
+
+Unique Data size of subvolumes: 37.31GiB Total size: 94.22GiB Volatility: 39.60%
 ```
-Snapshot 2133 introduced 17GiB, where most of them still reside on the system (used by newer snapshot, 2395)
-Thus, deleting snapshot 2133, will only free 6MiB. Snapshot 2133 has 119MiB changed compared to current/ active (258) subvolume.
+
+#### Explain
+Snapshot `1801` introduced `24.28GiB`, where most of them still reside on the system (used by newer snapshot, `1803`)
+Thus, deleting snapshot `1801`, will only free `43.6MiB`. Snapshot `1801` has `98.66MiB` changed compared to current/ active (`14421`) subvolume.
+
 When using `-u` argument only the first column has values.
 
-Files result example:
-```
-Possible Unique Files:
-beeshash.dat/ : {4652}
-beescrawl.dat/ : {4652}
-beesstats.txt/ : {4652}
-2708/filelist-2700.txt/ : {259}
-2744/filelist-2741.txt/ : {259}
-2752/filelist-2744.txt/ : {259}
-2795/filelist-2789.txt/ : {259}
-```
+## Versions
 
+1. **0_check-btrfs-sub-size-diff__original.py** - Original version.
+2. **1_check-btrfs-sub-size-diff__prototype.sh** - Prototype version.
+3. **2_check-btrfs-sub-size-diff__no-line.py** - Version without line spacing.
+4. **3_check-btrfs-sub-size-diff__with-line.py** - Version with line spacing.
 
-## Possible expansions:
+### History / Differences
+**Version 1**
+  >  Not much, simply cloned the original project and added a bash script to run `sudo btrfs subvolume list $1` before and after the python script.\
+  >> -Requires the [the original python script](0_check-btrfs-sub-size-diff__original.py) to function.\
+  >> -Cannot use the advanced features of [the original python script](0_check-btrfs-sub-size-diff__original.py).
+  >>> `./1_check-btrfs-sub-size-diff__prototype.sh /path/to/btrfs/mount/point` is the only usage.\
+  > \
+> ![Previews_compare-0_3](Previews/Previews_compare-0_1.jpg)
+
+**Version 2**
+  >  Fully implemented `sudo btrfs subvolume list $1` printing into the python script. It shows the path of the subvolume alongside the subvolume ID.\
+  >> +All features from [the original python script](0_check-btrfs-sub-size-diff__original.py) are intact.
+   >>> ![Previews_compare-0_2](Previews/Previews_compare-0_2.jpg)
+
+**Version 3**
+  >  Enhanced the output format for better readability, use line spacing to ensure consistent column alignment.\
+  >> +All features from [the original pythonscript](0_check-btrfs-sub-size-diff__original.py) are intact.
+  >>>  ![Previews_improves-3.jpg](Previews/Previews_improves-3.jpg)
+
+## 8. License
+
+This project is licensed under the GNU General Public License (GPL) Version 3, 29 June 2007. See the [LICENSE](LICENSE) file for more details.
+
+## 9. Contributing
+
+Feel free to open issues or submit pull requests if you encounter any bugs or have suggestions for further improvements!
+
+### 9.1 Possible expansions:
 
 Calculate the size of metadata block differences.
 Take into consideration inline file extents.
 Why do we recieve the same extent with the same range many times?
+
+Since there're only minor changes, this fork project might merge into [the original project](https://github.com/dim-geo/btrfs-snapshot-diff/).
