@@ -278,6 +278,8 @@ When using `-u` argument only the first column has values.
   >> +All features from [the original pythonscript](0_check-btrfs-sub-size-diff__original.py) are intact.
   >>>  ![Previews_improves-3.jpg](Previews/Previews_improves-3.jpg)
 
+---
+
 ## 8. License
 
 This project is licensed under the GNU General Public License (GPL) Version 3, 29 June 2007. See the [LICENSE](LICENSE) file for more details.
