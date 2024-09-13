@@ -43,6 +43,8 @@ Btrfs 係一個 CoW (Copy on Write)檔案系統，對於分析snapshot(/subvolum
 - **Subvolume 路徑集成**: 依個fork嘅主要改進係輸出包括 subvolume 路徑，令資訊更加易讀，對於管理多個snapshot嘅用戶更加有用。
 - **行間分隔**: 增加行間距，提高可讀性同維護性。
 
+  >>>  ![Previews_compare-0_3.jpg](Previews/Previews_compare-0_3.jpg)
+
 ## 4. 點樣運作：
 
 依個工具分析 btrfs 檔案系統中嘅所有 subvolumes。對於每個 subvolume，解析並保存所有唔係 inline 嘅檔案範圍。所有其他項目會被忽略。
