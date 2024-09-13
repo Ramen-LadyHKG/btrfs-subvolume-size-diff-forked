@@ -67,7 +67,8 @@ Now, the actual disk size of Snapshot 1 can be extracted from each file extent
 #### Prerequisites
 - BTRFS partition with subvolumes(/snapshots)
 - [python-btrfs](https://github.com/knorrie/python-btrfs) must be installed.
-
+- Just jump to [Usage](#6-usage)
+----
 ### Download this project
 Download this repository to your favourite location. Mines at `$Home/scripts`
 
