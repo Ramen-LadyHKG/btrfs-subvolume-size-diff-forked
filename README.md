@@ -4,19 +4,26 @@ This project is a fork of [`dim-geo`](https://github.com/dim-geo/)'s tool [`btrf
 
 The primary enhancement introduced in this fork, is the ability to display subvolume paths alongside their IDs. This makes it significantly easier to identify and manage Btrfs subvolumes, especially when dealing with complex snapshot structures.
 
+
+
+https://github.com/user-attachments/assets/af85493b-c50e-4f04-b64e-f5956e817743
+
+
+
+
 ## Overview
 
-1. [Why do you need this tool?](#1-why-do-you-need-this-tool)
-2. [Original implemented functionality](#2-original-implemented-functionality)
-3. [The improvements over the original project](#3-The-improvement-over-the-original-project)
-4. [How it works](#4-how-it-works)
-5. [Installation](#5-installation)
-6. [Usage](#6-usage)
-      6.1 [Example](#6-1-example)
-7. [Versions](#7-versions)
-8. [License](#8-license)
-9. [Contributing](#9-contributing)
-      9.1 [Possible expansions](#possible-expansions)
+- [1. Why do you need this tool?](#1-why-do-you-need-this-tool)
+- [2. Original implemented functionality](#2-original-implemented-functionality)
+- [3. The improvements over the original project](#3-the-improvements-over-the-original-project)
+- [4. How it works](#4-how-it-works)
+- [5. Installation](#5-installation)
+- [6. Usage](#6-usage)\
+            - [6.1 Example](#61-example)
+- [7. Versions](#7-versions)
+- [8. License](#8-license)
+- [9. Contributing](#9-contributing)\
+            - [9.1 Possible expansions](#91-possible-expansions)
 
 ## 1. Why do you need this tool?
 
@@ -51,6 +58,8 @@ Thus, we create a tree of extents & ranges together with the snapshots that use 
 
 Now, the actual disk size of Snapshot 1 can be extracted from each file extent
 
+---
+
 ## 5. Installation
 
 ### Advanced User (Hey! My python is set up)
@@ -71,7 +80,7 @@ Download this repository to your favourite location. Mines at `$Home/scripts`
 
 3. Set up python
 Here, I cannot provide detail setup for python due diffences between distro.
-I recommend you to look for better resources.
+I recommend you looking for better resources.
 > https://docs.python-guide.org/starting/install3/linux/
 > https://docs.aws.amazon.com/zh_tw/elasticbeanstalk/latest/dg/eb-cli3-install-linux.html
 
@@ -112,7 +121,7 @@ Program is single threaded, it could use a lot of memory and it puts a lot of re
 You can find subvolume ids by using:
 `btrfs subvolume list /path/to/btrfs`
 
-## 6.1. Example:
+### 6.1. Example:
 
 `sudo btrfs subvolume list  --sort=-rootid /`:
 ```
@@ -241,7 +250,7 @@ Thus, deleting snapshot `1801`, will only free `43.6MiB`. Snapshot `1801` has `9
 
 When using `-u` argument only the first column has values.
 
-## Versions
+## 7. Versions
 
 1. **0_check-btrfs-sub-size-diff__original.py** - Original version.
 2. **1_check-btrfs-sub-size-diff__prototype.sh** - Prototype version.
