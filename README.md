@@ -69,7 +69,7 @@ Btrfs 係一個 CoW (Copy on Write)檔案系統，對於分析snapshot(/subvolum
 #### 前置條件
 - BTRFS 分區有 subvolumes(/snapshots)
 - 需要安裝 [python-btrfs](https://github.com/knorrie/python-btrfs)。
-- 直接跳到 [使用](#6-使用)
+- 直接跳到 [6-使用方式](#6-使用方式)
 ----
 ### 下載依個項目
 將依個倉庫下載到你嘅喜愛位置。我放喺 `$Home/scripts`
