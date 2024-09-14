@@ -188,7 +188,7 @@ class Ranges:
     def __sub__(self,other):
         final_result=Ranges()
         queue=deque(self.list)
-
+        
         while queue:
             item = queue.popleft()
             #this could be optiomized more
@@ -224,8 +224,8 @@ class TreeWrapper:
         self._tree=dict()
         self._snapshots=[]
         #self._inodes=dict()
-
-
+    
+        
     #check if the current tree has data for this extent/key.
     #if it has, check if the current extent range is already parsed.
     def delete_range(self,key,limit,tree,shallow):
@@ -263,7 +263,7 @@ class TreeWrapper:
                           if find_snapshot_in_list(snapshotinodelist,tree,True):
                               ranges.append(myrange)
                       ranges.sort()
-
+                      
                       #start of intervals for this key and tree are in even positions
                       #ends are in odd positions
                       starts=ranges[::2]
@@ -271,23 +271,23 @@ class TreeWrapper:
                       if len(starts)!=len(stops):
                           print("problem",key,ranges)
                           sys.exit(0)
-
+                      
                       #if the data we are trying to push already exist, ignore them
                       if start in starts:
                           index=starts.index(start)
                           if stop == stops[index]:
                               #print(ranges,start,stop)
                               return
-
+                      
                       #Algorithm: we have these intervals: 0...100, 150...200
                       #and we want to add 80...170
                       #the final result must be 0...200 because this extent is used
                       #interely by this snapshot
-
+                      
                       #For each base, calculate base - target. If the base
                       #interval is modified then delete that end because new data will
                       #be added. Then target becomes target-base and continue with the next base
-
+                      
                       #try to minimize the subtractions needed
                       realstart=bisect.bisect_left(starts,start)
                       realstop=bisect.bisect_right(stops,stop)
@@ -303,7 +303,7 @@ class TreeWrapper:
                       if len(mystarts)>0:
                           if mystarts[0]>stop:
                               mystarts=mystarts[1:]
-
+                              
                       #target is the interval we are trying to add
                       target=Ranges(start,stop)
                       for i, oldstart in enumerate(mystarts):
@@ -316,18 +316,18 @@ class TreeWrapper:
                               self.delete_range(key,base.lower,tree,True)
                           if base.upper<target.upper and newbase.upper!=base.upper:
                               self.delete_range(key,base.upper,tree,True)
-
+                          
                           #target must be modifed as well if the inrvals partially
                           #exists already in base
                           target-=base
-
+                          
                           #if ti becomes empty it means that its data already exist
                           if target.is_empty():
                               return
-
+                      
                       #if target survives, it means that its data are not overlaping
                       #with existing bases so they must be added
-
+                      
                       if target.lower==start:
                           self.add_range(key,start,mypair)
                       if target.upper==stop:
@@ -430,11 +430,11 @@ class TreeWrapper:
                         print(wanted,not_wanted)
                         print(extent,sorted(rangedict.items()),myrange)
         return result
-
+    
     #the active subvolume must be the last one
     def add_snapshots(self,snapshots):
         self._snapshots=snapshots.copy()
-
+    
     #calculate the size of ranges ontop of the previous subvolume
     #older subvolumes must be first in subvolume list
     def find_snapshot_size_to_previous(self):
@@ -458,7 +458,7 @@ class TreeWrapper:
         return results
 
 #try to optimize parsing by piping, but to no avail
-
+            
 def disk_parse_pipe(pipe,path,tree):
           print("Parsing subvolume:",tree)
           fs=btrfs.FileSystem(path)
@@ -591,13 +591,13 @@ def main():
     #these are the subvolumes specified by the user, these will be either ignored
     #or all the other subvolumes will be ingored
     special_subvolumes=set(args.subvolume)
-
+    
     #if no argument specified then assume that the user wanted to ingore the speficied subvolumes
     if args.ignore == False and args.only== False:
         args.ignore=True
-
+    
     #remove the unneeded subvolumes
-    if args.ignore:
+    if args.ignore:    
         for item in special_subvolumes:
             try:
                 parse_trees.remove(item)
@@ -607,16 +607,16 @@ def main():
         for tree in parse_trees[:]:
             if tree not in special_subvolumes:
                 parse_trees.remove(tree)
-
+    
     data_tree=TreeWrapper()
-
+    
     #move the root subvolume in the end
     #older subvolumes must be first
     changed_snapshots = deque(parse_trees)
     changed_snapshots.rotate(-1)
     parse_trees=list(changed_snapshots)
     data_tree.add_snapshots(parse_trees)
-
+    
     #parse the trees from newer to older
     parse_trees=list(reversed(parse_trees))
     pool = multiprocessing.Pool(processes=4)
@@ -631,7 +631,7 @@ def main():
     data_tree.transform()
     unique_sum=0
     unique_data,files=data_tree.find_unique(fs,args.files)
-    #if unique analysis is only needed, do not calculate differences
+    #if unique analysis is only needed, do not calculate differences 
     if args.unique:
       current_data=Counter()
       previous_data=Counter()
